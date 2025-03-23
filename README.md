@@ -9,11 +9,11 @@
 - [Project Overview](#project-overview)  
 - [Key Features](#key-features)  
 - [Technologies Used](#technologies-used)  
-- [Architecture](#architecture)  
-- [Installation](#installation)  
-- [Usage](#usage)    
-- [License](#license)  
-- [Roadmap](#roadmap)  
+- [Architecture](#Architecture)  
+- [Installation](#Installation)  
+- [Usage](#Usage)    
+- [License](#License)  
+- [Roadmap](#Roadmap)  
   
 
 ---
