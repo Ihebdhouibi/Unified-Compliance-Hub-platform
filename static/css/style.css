@@ -1,0 +1,177 @@
+/**
+ * Custom styles for Unified Compliance Hub
+ */
+
+/* Global Styles */
+:root {
+    --primary-color: #0d6efd;
+    --secondary-color: #6c757d;
+    --success-color: #198754;
+    --info-color: #0dcaf0;
+    --warning-color: #fd7e14;
+    --danger-color: #dc3545;
+    --light-color: #f8f9fa;
+    --dark-color: #212529;
+}
+
+body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+main {
+    flex: 1;
+}
+
+/* Navbar customization */
+.navbar-brand {
+    font-weight: 600;
+}
+
+/* Card styles */
+.card {
+    border-radius: 0.5rem;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    transition: all 0.2s ease-in-out;
+}
+
+.card:hover {
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+.card-header {
+    border-top-left-radius: 0.5rem !important;
+    border-top-right-radius: 0.5rem !important;
+}
+
+/* Badge customizations */
+.risk-badge {
+    padding: 0.35em 0.65em;
+    font-size: 0.75em;
+    font-weight: 700;
+    color: #fff;
+    border-radius: 0.25rem;
+}
+
+.risk-badge.high {
+    background-color: #dc3545;
+}
+
+.risk-badge.medium {
+    background-color: #fd7e14;
+}
+
+.risk-badge.low {
+    background-color: #198754;
+}
+
+/* Button styles */
+.btn {
+    border-radius: 0.25rem;
+}
+
+/* Table styling */
+.table th {
+    font-weight: 600;
+    border-top: none;
+}
+
+.table-hover tbody tr:hover {
+    background-color: rgba(13, 110, 253, 0.05);
+}
+
+/* Form styling */
+.form-control, .input-group-text {
+    border-radius: 0.25rem;
+}
+
+.form-control:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+.input-group-text {
+    background-color: var(--light-color);
+}
+
+/* Dashboard cards */
+.dashboard-card {
+    border-top: 3px solid;
+}
+
+.border-primary {
+    border-top-color: var(--primary-color);
+}
+
+.border-info {
+    border-top-color: var(--info-color);
+}
+
+.border-warning {
+    border-top-color: var(--warning-color);
+}
+
+.border-success {
+    border-top-color: var(--success-color);
+}
+
+/* Assessment form styling */
+.control-item {
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    border: 1px solid #dee2e6;
+    border-radius: 0.5rem;
+    background-color: #fff;
+}
+
+.control-item:hover {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+.control-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.control-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+/* Toast notifications */
+.toast-container {
+    z-index: 1100;
+}
+
+/* Add to static/css/style.css */
+.svg-container {
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.svg-container svg {
+    width: 100%;
+    height: auto;
+}
+
+/* Responsive styles */
+@media (max-width: 767.98px) {
+    .card-header {
+        padding: 0.75rem;
+    }
+    
+    .card-body {
+        padding: 1rem;
+    }
+    
+    h1 {
+        font-size: 1.75rem;
+    }
+    
+    .table {
+        font-size: 0.875rem;
+    }
+}
