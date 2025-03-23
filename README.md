@@ -18,12 +18,12 @@
 
 ---
 
-## 🚀 Project Overview  {project-overview}
+## 🚀 Project Overview  {#project-overview}
 This project simplifies compliance with **ISO 27001:2022** and **PCI DSS v4.0** by unifying their requirements into a single framework. The platform automates compliance assessments, prioritizes risks, and provides real-time tracking through an intuitive dashboard. Designed for medium-sized businesses, it reduces redundant efforts and streamlines audit preparation.  
 
 ---
 
-## 🔑 Key Features  {key-features}
+## 🔑 Key Features  {#key-features}
 1. **Unified Compliance Framework**  
    - Mapped controls for ISO 27001 and PCI DSS to eliminate redundancy.  
 2. **AI-Powered Risk Prioritization**  
@@ -35,7 +35,7 @@ This project simplifies compliance with **ISO 27001:2022** and **PCI DSS v4.0** 
 
 ---
 
-## 🛠️ Technologies Used  {technologies-used}
+## 🛠️ Technologies Used  {#technologies-used}
 ### Frontend  
 - **HTML5**, **CSS3**, **JavaScript** (Vanilla-js/jQuery) 
 - **Bootstrap 5** (responsive design)  
@@ -55,7 +55,7 @@ This project simplifies compliance with **ISO 27001:2022** and **PCI DSS v4.0** 
 
 ---
 
-## 🏗️ Architecture  {architecture}
+## 🏗️ Architecture  {#architecture}
 ```plaintext
 Frontend (HTML/CSS/JS)  
   │  
@@ -103,7 +103,7 @@ Frontend (HTML/CSS/JS)
 
 ---
 
-## 🖥️ Usage  {usage}
+## 🖥️ Usage  {#usage}
 1. **Dashboard Navigation**  
    - View the **compliance score** and **risk overview** in the header.  
    - Explore the **bar chart** for policy risk distribution.  
@@ -115,12 +115,12 @@ Frontend (HTML/CSS/JS)
 
 ---
 
-## 📄 License  {license}
+## 📄 License  {#license}
 This project is licensed under the **MIT License**. See [LICENSE](LICENSE) for details.  
 
 ---
 
-## 🗺️ Roadmap  {roadmap}
+## 🗺️ Roadmap  {#roadmap}
 - **1st Milestone**: Develop frontend & backend.  
 - **2nd Milestone**: Document extraction & Developement of a consolidated compliance
 framework that maps and aligns ISO 27001 controls with corresponding PCI DSS
