@@ -14,6 +14,9 @@ from werkzeug.security import generate_password_hash, check_password_hash
 # Create the blueprint without referencing app directly
 auth_bp = Blueprint("auth", __name__)
 
+# Create 2nd blueprint for logged-in pages
+dashboard_bp = Blueprint("dashboard", __name__)
+
 
 @auth_bp.route("/login", methods=["GET"])
 def login():
@@ -25,3 +28,9 @@ def login():
 def register():
     """Register page route"""
     return render_template("register.html")
+
+
+@dashboard_bp.route("/dashboard")
+def dashboard():
+    """Dashboard page route"""
+    return render_template("dashboard.html")
