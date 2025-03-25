@@ -1,13 +1,27 @@
-from flask import render_template, request, redirect, url_for, flash, jsonify, session
+from flask import (
+    render_template,
+    Blueprint,
+    request,
+    redirect,
+    url_for,
+    flash,
+    jsonify,
+    session,
+)
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
-from app import app, db
 
-import json
-import logging
+# Create the blueprint without referencing app directly
+auth_bp = Blueprint("auth", __name__)
 
 
-@app.route("/")
-def index():
-    """Home page route"""
-    return render_template("index.html")
+@auth_bp.route("/login", methods=["GET"])
+def login():
+    """Login page route"""
+    return render_template("login.html")
+
+
+@auth_bp.route("/register", methods=["GET"])
+def register():
+    """Register page route"""
+    return render_template("register.html")
