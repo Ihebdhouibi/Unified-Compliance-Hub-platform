@@ -20,8 +20,8 @@
         </div>
         <div class="d-grid gap-2 d-md-flex">
 
-                <a href="" class="btn btn-primary btn-lg px-4 me-md-2">Get Started</a>
-                <a href="" class="btn btn-outline-secondary btn-lg px-4">Log In</a>
+                <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg px-4 me-md-2">Get Started</a>
+                <a href="{{ url_for('auth.login') }}" class="btn btn-outline-secondary btn-lg px-4">Log In</a>
         </div>
     </div>
     <div class="col-lg-6 d-none d-lg-block">
