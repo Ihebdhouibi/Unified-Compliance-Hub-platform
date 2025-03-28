@@ -32,6 +32,9 @@ dashboard_bp = Blueprint("dashboard", __name__)
 # assessment blueprint
 assessment_bp = Blueprint("assessment", __name__)
 
+# api assessment blueprint
+api_assessment_bp = Blueprint("api/assessment", __name__)
+
 # controls blueprint
 controls_bp = Blueprint("controls", __name__)
 
@@ -98,11 +101,11 @@ def register():
                 except ValueError as e:
                     logging.error(f"Password validation error: {str(e)}")
                     flash(str(e), "danger")
-                    return redirect(url_for("register"))
+                    return redirect(url_for("auth.register"))
                 except Exception as e:
                     logging.error(f"Error during user creation: {str(e)}")
                     flash("Error creating user account", "danger")
-                    return redirect(url_for("register"))
+                    return redirect(url_for("auth.register"))
 
                 # Create default organization for the user
                 try:
@@ -278,3 +281,85 @@ def reports():
     """Reports page for detailed compliance reports"""
     assessments = Assessment.query.order_by(Assessment.date_created.desc()).all()
     return render_template("reports.html", assessments=assessments)
+
+
+@api_assessment_bp.route("/api/assessment/<int:assessment_id>")
+def get_assessment_data(assessment_id):
+    """API endpoint to get assessment data for charts"""
+    results = AssessmentResult.query.filter_by(assessment_id=assessment_id).all()
+    print(results)
+    # Count by status
+    status_counts = {"compliant": 0, "partially_compliant": 0, "non_compliant": 0}
+
+    # Count by risk level
+    risk_counts = {"high": 0, "medium": 0, "low": 0}
+
+    # Get framework compliance percentages
+    iso_compliance = {"total": 0, "compliant": 0}
+    pci_compliance = {"total": 0, "compliant": 0}
+
+    for result in results:
+        # Update status counts
+        status_counts[result.status] = status_counts.get(result.status, 0) + 1
+
+        # Update risk counts
+        risk_counts[result.risk_level] = risk_counts.get(result.risk_level, 0) + 1
+
+        # Update framework-specific counts
+        control = result.control
+        framework = control.framework
+
+        if framework.name == "ISO 27001":
+            iso_compliance["total"] += 1
+            if result.status == "compliant":
+                iso_compliance["compliant"] += 1
+        elif framework.name == "PCI DSS":
+            pci_compliance["total"] += 1
+            if result.status == "compliant":
+                pci_compliance["compliant"] += 1
+
+    # Calculate percentages
+    iso_percentage = (
+        (iso_compliance["compliant"] / iso_compliance["total"] * 100)
+        if iso_compliance["total"] > 0
+        else 0
+    )
+    pci_percentage = (
+        (pci_compliance["compliant"] / pci_compliance["total"] * 100)
+        if pci_compliance["total"] > 0
+        else 0
+    )
+
+    # Prepare detailed results
+    detailed_results = []
+    for result in results:
+        control = result.control
+        detailed_results.append(
+            {
+                "id": control.id,
+                "control_id": control.control_id,
+                "title": control.title,
+                "framework": control.framework.name,
+                "status": result.status,
+                "risk_level": result.risk_level,
+                "action_required": result.action_required,
+            }
+        )
+
+    data = {
+        "status_counts": status_counts,
+        "risk_counts": risk_counts,
+        "framework_compliance": {"iso27001": iso_percentage, "pcidss": pci_percentage},
+        "overall_compliance": (
+            (
+                (iso_compliance["compliant"] + pci_compliance["compliant"])
+                / (iso_compliance["total"] + pci_compliance["total"])
+                * 100
+            )
+            if (iso_compliance["total"] + pci_compliance["total"]) > 0
+            else 0
+        ),
+        "detailed_results": detailed_results,
+    }
+
+    return jsonify(data)
