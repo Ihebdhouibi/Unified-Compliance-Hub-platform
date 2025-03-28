@@ -24,12 +24,15 @@ def create_app():
     db.init_app(app)
     login_manager.init_app(app)
 
+    # with app.app_context():
+    #    db.create_all()
     # Import routes after creating the app to avoid circular imports
-    from routes import auth_bp, dashboard_bp
+    from routes import auth_bp, dashboard_bp, assessment_bp
     from models import User
 
     app.register_blueprint(auth_bp, url_prefix="/auth")
     app.register_blueprint(dashboard_bp, url_prefix="/dashboard")
+    app.register_blueprint(assessment_bp, url_prefix="/assessment")
 
     # Configure login manager
     @login_manager.user_loader
