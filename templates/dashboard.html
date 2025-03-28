@@ -188,8 +188,29 @@
 {% block extra_js %}
 <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
 <script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+<div id="dashboard-container" 
+     data-assessment-id="{{ assessment_id }}">
+</div>
 <script>
-    
+document.addEventListener('DOMContentLoaded', function() {
+    const container = document.getElementById('dashboard-container');
+    console.log('Container:', container);
+    console.log('Raw assessment ID:', container.dataset.assessmentId);
+
+    const INITIAL_ASSESSMENT_ID = container.dataset.assessmentId 
+        ? parseInt(container.dataset.assessmentId) 
+        : null;
+
+    console.log('Parsed Assessment ID:', INITIAL_ASSESSMENT_ID);
+
+    if (INITIAL_ASSESSMENT_ID) {
+        console.log('Attempting to load dashboard data');
+        loadDashboardData(INITIAL_ASSESSMENT_ID);
+    } else {
+        console.warn('No assessment ID found');
+        showEmptyState();
+    }
+});
     function showEmptyState() {
         // Empty state message for dashboard
         const riskTableBody = document.getElementById('risk-table-body');
