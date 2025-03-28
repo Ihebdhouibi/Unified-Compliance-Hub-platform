@@ -1,6 +1,7 @@
 from flask import Flask, render_template
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
+from flask_cors import CORS
 from dotenv import load_dotenv
 import os
 import logging
@@ -12,7 +13,7 @@ load_dotenv(dotenv_path=".env")
 
 def create_app():
     app = Flask(__name__, static_folder="static")
-
+    CORS(app)
     app.config.from_mapping(
         SECRET_KEY=os.getenv("SECRET_KEY"),
         SQLALCHEMY_DATABASE_URI=os.getenv("DATABASE_URL"),
@@ -36,13 +37,22 @@ def create_app():
     # with app.app_context():
     #    db.create_all()
     # Import routes after creating the app to avoid circular imports
-    from routes import auth_bp, dashboard_bp, assessment_bp, controls_bp
+    from routes import (
+        auth_bp,
+        dashboard_bp,
+        assessment_bp,
+        controls_bp,
+        reports_bp,
+        api_assessment_bp,
+    )
     from models import User
 
     app.register_blueprint(auth_bp, url_prefix="/auth")
     app.register_blueprint(dashboard_bp, url_prefix="/dashboard")
     app.register_blueprint(assessment_bp, url_prefix="/assessment")
     app.register_blueprint(controls_bp, url_prefix="/controls")
+    app.register_blueprint(reports_bp, url_prefix="/reports")
+    app.register_blueprint(api_assessment_bp, url_prefix="/api/assessment")
 
     # Configure login manager
     @login_manager.user_loader
