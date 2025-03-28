@@ -1,3 +1,5 @@
 node_modules/
 assests/
 .env
+data/__pycache__/
+__pycache__/
