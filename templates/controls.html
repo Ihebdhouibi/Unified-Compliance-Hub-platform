@@ -1,0 +1,343 @@
+{% extends "base.html" %}
+
+{% block title %}Control Mapping - Unified Compliance Hub{% endblock %}
+
+{% block extra_css %}
+<style>
+    .control-card {
+        transition: transform 0.2s;
+        margin-bottom: 1rem;
+        border-left: 4px solid transparent;
+    }
+    .control-card:hover {
+        transform: translateX(5px);
+    }
+    .control-card.iso {
+        border-left-color: #0dcaf0;
+    }
+    .control-card.pci {
+        border-left-color: #fd7e14;
+    }
+    .mapping-item {
+        padding: 0.5rem;
+        margin-bottom: 0.5rem;
+        border-radius: 0.25rem;
+        font-size: 0.9rem;
+        background-color: rgba(0,0,0,0.03);
+    }
+    .mapping-badge {
+        font-size: 0.7rem;
+        padding: 0.25em 0.5em;
+    }
+    .mapping-badge.equivalent {
+        background-color: #198754;
+    }
+    .mapping-badge.partial {
+        background-color: #fd7e14;
+    }
+    .mapping-badge.superset {
+        background-color: #6610f2;
+    }
+    .framework-filter {
+        cursor: pointer;
+    }
+    .framework-filter.active {
+        font-weight: bold;
+        text-decoration: underline;
+    }
+    #search-controls {
+        max-width: 400px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Unified Control Framework</h1>
+    <div class="d-flex">
+        <div class="input-group" id="search-controls">
+            <input type="text" class="form-control" placeholder="Search controls..." id="control-search">
+            <button class="btn btn-outline-secondary" type="button">
+                <i class="fas fa-search"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <p class="mb-0">This page displays a unified view of ISO 27001 and PCI DSS compliance controls with their cross-mappings. Filter, search, and explore the relationships between different controls across frameworks.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-3">
+    <div class="col-12">
+        <div class="btn-toolbar">
+            <div class="btn-group me-3" role="group">
+                <span class="me-2">Filter by:</span>
+                <a class="framework-filter active me-3" data-framework="all">All Controls</a>
+                <a class="framework-filter me-3" data-framework="iso">
+                    <span class="badge bg-info me-1">ISO</span>ISO 27001
+                </a>
+                <a class="framework-filter" data-framework="pci">
+                    <span class="badge bg-warning me-1">PCI</span>PCI DSS
+                </a>
+            </div>
+            
+            <div class="btn-group ms-auto" role="group">
+                <span class="me-2">View:</span>
+                <button class="btn btn-sm btn-outline-secondary active" id="card-view-btn">
+                    <i class="fas fa-th-large"></i> Card
+                </button>
+                <button class="btn btn-sm btn-outline-secondary" id="table-view-btn">
+                    <i class="fas fa-table"></i> Table
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Card View (Default) -->
+<div id="card-view" class="row">
+    <!-- ISO 27001 Controls -->
+    <div class="col-md-6">
+        <h3 class="mb-3">
+            <span class="badge bg-info me-2">ISO</span>
+            ISO 27001 Controls
+        </h3>
+        
+        {% for control in iso_controls %}
+        <div class="card control-card iso" data-framework="iso" data-id="{{ control.id }}">
+            <div class="card-body">
+                <h5 class="card-title">{{ control.control_id }} - {{ control.title }}</h5>
+                <p class="card-text">{{ control.description }}</p>
+                
+                {% if control.id in mappings %}
+                <div class="mt-3">
+                    <p class="mb-2"><strong>Mapped to:</strong></p>
+                    {% for mapping in mappings[control.id] %}
+                    <div class="mapping-item">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span><strong>{{ mapping.control_id }}</strong> - {{ mapping.title }}</span>
+                            <span class="badge mapping-badge {{ mapping.relationship }}">{{ mapping.relationship }}</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-muted fst-italic mt-3">No control mappings</p>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <!-- PCI DSS Controls -->
+    <div class="col-md-6">
+        <h3 class="mb-3">
+            <span class="badge bg-warning me-2">PCI</span>
+            PCI DSS Controls
+        </h3>
+        
+        {% for control in pci_controls %}
+        <div class="card control-card pci" data-framework="pci" data-id="{{ control.id }}">
+            <div class="card-body">
+                <h5 class="card-title">{{ control.control_id }} - {{ control.title }}</h5>
+                <p class="card-text">{{ control.description }}</p>
+                
+                {% if control.id in mappings %}
+                <div class="mt-3">
+                    <p class="mb-2"><strong>Mapped to:</strong></p>
+                    {% for mapping in mappings[control.id] %}
+                    <div class="mapping-item">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span><strong>{{ mapping.control_id }}</strong> - {{ mapping.title }}</span>
+                            <span class="badge mapping-badge {{ mapping.relationship }}">{{ mapping.relationship }}</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-muted fst-italic mt-3">No control mappings</p>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Table View (Hidden by default) -->
+<div id="table-view" class="row d-none">
+    <div class="col-12">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>Control ID</th>
+                        <th>Title</th>
+                        <th>Framework</th>
+                        <th>Description</th>
+                        <th>Mapped Controls</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- ISO Controls in Table -->
+                    {% for control in iso_controls %}
+                    <tr data-framework="iso">
+                        <td>{{ control.control_id }}</td>
+                        <td>{{ control.title }}</td>
+                        <td><span class="badge bg-info">ISO 27001</span></td>
+                        <td>{{ control.description }}</td>
+                        <td>
+                            {% if control.id in mappings %}
+                                {% for mapping in mappings[control.id] %}
+                                <div class="mb-1">
+                                    <span class="badge bg-warning">{{ mapping.control_id }}</span>
+                                    <span class="badge mapping-badge {{ mapping.relationship }}">{{ mapping.relationship }}</span>
+                                </div>
+                                {% endfor %}
+                            {% else %}
+                                <span class="text-muted">None</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    
+                    <!-- PCI Controls in Table -->
+                    {% for control in pci_controls %}
+                    <tr data-framework="pci">
+                        <td>{{ control.control_id }}</td>
+                        <td>{{ control.title }}</td>
+                        <td><span class="badge bg-warning">PCI DSS</span></td>
+                        <td>{{ control.description }}</td>
+                        <td>
+                            {% if control.id in mappings %}
+                                {% for mapping in mappings[control.id] %}
+                                <div class="mb-1">
+                                    <span class="badge bg-info">{{ mapping.control_id }}</span>
+                                    <span class="badge mapping-badge {{ mapping.relationship }}">{{ mapping.relationship }}</span>
+                                </div>
+                                {% endfor %}
+                            {% else %}
+                                <span class="text-muted">None</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // View switching
+        const cardViewBtn = document.getElementById('card-view-btn');
+        const tableViewBtn = document.getElementById('table-view-btn');
+        const cardView = document.getElementById('card-view');
+        const tableView = document.getElementById('table-view');
+        
+        cardViewBtn.addEventListener('click', function() {
+            cardView.classList.remove('d-none');
+            tableView.classList.add('d-none');
+            cardViewBtn.classList.add('active');
+            tableViewBtn.classList.remove('active');
+        });
+        
+        tableViewBtn.addEventListener('click', function() {
+            cardView.classList.add('d-none');
+            tableView.classList.remove('d-none');
+            cardViewBtn.classList.remove('active');
+            tableViewBtn.classList.add('active');
+        });
+        
+        // Framework filtering
+        const frameworkFilters = document.querySelectorAll('.framework-filter');
+        
+        frameworkFilters.forEach(filter => {
+            filter.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                // Update active state
+                frameworkFilters.forEach(f => f.classList.remove('active'));
+                this.classList.add('active');
+                
+                const framework = this.dataset.framework;
+                filterControls(framework);
+            });
+        });
+        
+        // Control search
+        const searchInput = document.getElementById('control-search');
+        
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            searchControls(searchTerm);
+        });
+        
+        // Functions
+        function filterControls(framework) {
+            const controls = document.querySelectorAll('.control-card');
+            const tableRows = document.querySelectorAll('tbody tr');
+            
+            if (framework === 'all') {
+                controls.forEach(control => control.style.display = '');
+                tableRows.forEach(row => row.style.display = '');
+            } else {
+                controls.forEach(control => {
+                    if (control.dataset.framework === framework) {
+                        control.style.display = '';
+                    } else {
+                        control.style.display = 'none';
+                    }
+                });
+                
+                tableRows.forEach(row => {
+                    if (row.dataset.framework === framework) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+            }
+        }
+        
+        function searchControls(term) {
+            const controls = document.querySelectorAll('.control-card');
+            const tableRows = document.querySelectorAll('tbody tr');
+            
+            if (term === '') {
+                // If search is cleared, respect current filter
+                const activeFilter = document.querySelector('.framework-filter.active').dataset.framework;
+                filterControls(activeFilter);
+                return;
+            }
+            
+            controls.forEach(control => {
+                const content = control.textContent.toLowerCase();
+                if (content.includes(term)) {
+                    control.style.display = '';
+                } else {
+                    control.style.display = 'none';
+                }
+            });
+            
+            tableRows.forEach(row => {
+                const content = row.textContent.toLowerCase();
+                if (content.includes(term)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}
