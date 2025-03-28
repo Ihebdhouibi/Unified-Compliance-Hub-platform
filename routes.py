@@ -19,6 +19,7 @@ from models import (
     ComplianceControl,
     ComplianceFramework,
     Organization,
+    ControlMapping,
 )
 
 # Create the blueprint without referencing app directly
@@ -29,6 +30,9 @@ dashboard_bp = Blueprint("dashboard", __name__)
 
 # assessment blueprint
 assessment_bp = Blueprint("assessment", __name__)
+
+# controls blueprint
+controls_bp = Blueprint("controls", __name__)
 
 
 @auth_bp.route("/login", methods=["GET", "POST"])
@@ -162,3 +166,48 @@ def assessment():
     now = datetime.now()
 
     return render_template("assessment.html", controls=all_controls, now=now)
+
+
+@controls_bp.route("/controls")
+def controls():
+    """View unified control framework"""
+    # Get ISO controls
+    iso_framework = ComplianceFramework.query.filter_by(name="ISO 27001").first()
+    iso_controls = (
+        ComplianceControl.query.filter_by(framework_id=iso_framework.id).all()
+        if iso_framework
+        else []
+    )
+
+    # Get PCI DSS controls
+    pci_framework = ComplianceFramework.query.filter_by(name="PCI DSS").first()
+    pci_controls = (
+        ComplianceControl.query.filter_by(framework_id=pci_framework.id).all()
+        if pci_framework
+        else []
+    )
+
+    # Get mappings
+    mappings = ControlMapping.query.all()
+    mapping_dict = {}
+
+    for mapping in mappings:
+        primary = mapping.primary_control
+        secondary = mapping.secondary_control
+        if primary.id not in mapping_dict:
+            mapping_dict[primary.id] = []
+        mapping_dict[primary.id].append(
+            {
+                "id": secondary.id,
+                "control_id": secondary.control_id,
+                "title": secondary.title,
+                "relationship": mapping.relationship_type,
+            }
+        )
+
+    return render_template(
+        "controls.html",
+        iso_controls=iso_controls,
+        pci_controls=pci_controls,
+        mappings=mapping_dict,
+    )
