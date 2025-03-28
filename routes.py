@@ -21,6 +21,7 @@ from models import (
     Organization,
     ControlMapping,
 )
+import logging
 
 # Create the blueprint without referencing app directly
 auth_bp = Blueprint("auth", __name__)
@@ -33,6 +34,9 @@ assessment_bp = Blueprint("assessment", __name__)
 
 # controls blueprint
 controls_bp = Blueprint("controls", __name__)
+
+# reports blueprint
+reports_bp = Blueprint("reports", __name__)
 
 
 @auth_bp.route("/login", methods=["GET", "POST"])
@@ -58,27 +62,76 @@ def login():
 
 @auth_bp.route("/register", methods=["GET", "POST"])
 def register():
-    """Register page route"""
+    """User registration route"""
     if request.method == "POST":
-        username = request.form.get("username")
-        email = request.form.get("email")
-        password = request.form.get("password")
+        try:
+            username = request.form.get("username")
+            email = request.form.get("email")
+            password = request.form.get("password")
 
-        # Check for existing username or email
-        if User.query.filter(
-            (User.username == username) | (User.email == email)
-        ).first():
-            flash("Username or email already exists", "danger")
+            logging.debug(
+                f"Registration attempt for username: {username}, email: {email}"
+            )
+
+            # Check if username or email already exists
+            existing_user = User.query.filter(
+                (User.username == username) | (User.email == email)
+            ).first()
+            if existing_user:
+                flash("Username or email already exists", "danger")
+                return redirect(url_for("auth.register"))
+
+            # Create new user
+            try:
+                new_user = User(username=username, email=email)
+                logging.debug("User object created")
+
+                try:
+                    new_user.set_password(password)
+                    logging.debug("Password set successfully")
+
+                    db.session.add(new_user)
+                    logging.debug("User added to session")
+
+                    db.session.flush()  # This gets the ID without committing
+                    logging.debug(f"User ID generated: {new_user.id}")
+                except ValueError as e:
+                    logging.error(f"Password validation error: {str(e)}")
+                    flash(str(e), "danger")
+                    return redirect(url_for("register"))
+                except Exception as e:
+                    logging.error(f"Error during user creation: {str(e)}")
+                    flash("Error creating user account", "danger")
+                    return redirect(url_for("register"))
+
+                # Create default organization for the user
+                try:
+                    new_org = Organization(
+                        name=f"{username}'s Organization", owner_id=new_user.id
+                    )
+                    logging.debug("Organization object created")
+
+                    db.session.add(new_org)
+                    logging.debug("Organization added to session")
+
+                    db.session.commit()
+                    logging.debug("Database transaction committed")
+
+                    flash("Registration successful! Please log in.", "success")
+                    return redirect(url_for("auth.login"))
+                except Exception as e:
+                    db.session.rollback()
+                    logging.error(f"Error creating organization: {str(e)}")
+                    flash("Error creating organization", "danger")
+                    return redirect(url_for("auth.register"))
+            except Exception as e:
+                logging.error(f"Error in user registration: {str(e)}")
+                flash("Registration error", "danger")
+                return redirect(url_for("auth.register"))
+        except Exception as e:
+            logging.error(f"Unexpected error in registration route: {str(e)}")
+            flash("An unexpected error occurred", "danger")
             return redirect(url_for("auth.register"))
-
-        user = User(username=username, email=email)
-        user.set_password(password)
-
-        db.session.add(user)
-        db.session.commit()
-
-        flash("Registration successful! Please login", "success")
-        return redirect(url_for("auth.login"))
 
     return render_template("register.html")
 
@@ -94,8 +147,15 @@ def logout():
 @dashboard_bp.route("/dashboard")
 @login_required
 def dashboard():
-    """Dashboard page route"""
-    return render_template("dashboard.html")
+    """Dashboard route displaying compliance overview"""
+    # Get most recent assessment if available
+    assessment = Assessment.query.order_by(Assessment.date_created.desc()).first()
+    if assessment:
+        assessment_id = assessment.id
+    else:
+        assessment_id = None
+
+    return render_template("dashboard.html", assessment_id=assessment_id)
 
 
 @assessment_bp.route("/assessment", methods=["GET", "POST"])
@@ -109,11 +169,11 @@ def assessment():
 
         # Create new assessment
         # Get the first organization for the current user
-        user_org = Organization.query.filter_by(user_id=current_user.id).first()
+        user_org = Organization.query.filter_by(owner_id=current_user.id).first()
 
         if not user_org:
             flash("You need to create an organization first", "danger")
-            return redirect(url_for("dashboard"))
+            return redirect(url_for("dashboard.dashboard"))
 
         new_assessment = Assessment(
             title=data.get("assessment_title", "New Assessment"),
@@ -143,7 +203,7 @@ def assessment():
 
         db.session.commit()
         flash("Assessment saved successfully", "success")
-        return redirect(url_for("dashboard"))
+        return redirect(url_for("dashboard.dashboard"))
 
     # GET request handling
     iso_framework = ComplianceFramework.query.filter_by(name="ISO 27001").first()
@@ -211,3 +271,10 @@ def controls():
         pci_controls=pci_controls,
         mappings=mapping_dict,
     )
+
+
+@reports_bp.route("/reports")
+def reports():
+    """Reports page for detailed compliance reports"""
+    assessments = Assessment.query.order_by(Assessment.date_created.desc()).all()
+    return render_template("reports.html", assessments=assessments)
