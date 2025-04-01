@@ -44,6 +44,9 @@ reports_bp = Blueprint("reports", __name__)
 # technical report
 report_gen_bp = Blueprint("generate-milestone-report", __name__)
 
+# policies extraction
+extract_policies_bp = Blueprint("extract", __name__)
+
 
 @auth_bp.route("/login", methods=["GET", "POST"])
 def login():
@@ -490,3 +493,36 @@ def generate_milestone_report():
         download_name=f"compliance_hub_milestone1_{datetime.now().date()}.pdf",
         mimetype="application/pdf",
     )
+
+
+from flask import jsonify, request
+import tempfile
+import os
+from ocr_preprocessor import extract_text_from_pdf
+
+
+@extract_policies_bp.route("/extract-text", methods=["POST"])
+def handle_ocr_extraction():
+    if "pdf" not in request.files:
+        return jsonify({"error": "No file uploaded"}), 400
+
+    pdf_file = request.files["pdf"]
+    if not pdf_file.filename.lower().endswith(".pdf"):
+        return jsonify({"error": "Invalid file type"}), 400
+
+    try:
+        # Save to temp file
+        temp_dir = tempfile.mkdtemp()
+        temp_path = os.path.join(temp_dir, pdf_file.filename)
+        pdf_file.save(temp_path)
+
+        # Process PDF
+        extracted_text = extract_text_from_pdf(temp_path)
+
+        # Cleanup
+        os.remove(temp_path)
+        os.rmdir(temp_dir)
+
+        return jsonify({"text": extracted_text})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
