@@ -94,6 +94,16 @@
     .assessment-progress .progress-bar {
         background-color: #0d6efd;
     }
+    /* New OCR results styles */
+    #ocr-results {
+        margin-top: 2rem;
+        margin-bottom: 2rem;
+    }
+    #ocr-results pre {
+        max-height: 500px;
+        overflow-y: auto;
+        white-space: pre-wrap;
+    }
 </style>
 {% endblock %}
 
@@ -248,6 +258,9 @@
         {% endfor %}
     </div>
     
+    <!-- Add OCR results container -->
+    <div id="ocr-results" class="mt-5"></div>
+    
     <div class="d-flex justify-content-between mt-4 mb-5">
         <button type="button" class="btn btn-outline-secondary">Cancel</button>
         <button type="submit" class="btn btn-primary btn-lg" form="assessment-form">
@@ -286,6 +299,8 @@
         document.getElementById('assessment_pdf').value = '';
         document.getElementById('filePreview').innerHTML = '';
         document.getElementById('extractPoliciesBtn').classList.add('d-none');
+        // Also clear OCR results when file is cleared
+        document.getElementById('ocr-results').innerHTML = '';
     }
 
     document.addEventListener('DOMContentLoaded', function() {
@@ -297,6 +312,84 @@
         
         // Update initial metrics
         updateProgress();
+        
+        // Add event listener for Extract Policies button
+        document.getElementById('extractPoliciesBtn').addEventListener('click', async () => {
+            const fileInput = document.getElementById('assessment_pdf');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                alert('Please select a PDF file first.');
+                return;
+            }
+
+            try {
+                const formData = new FormData();
+                formData.append('pdf', file);
+
+                // Show loading state
+                const extractBtn = document.getElementById('extractPoliciesBtn');
+                extractBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+                extractBtn.disabled = true;
+
+                const response = await fetch('/extract-text/extract-text', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+
+                // Create results container
+                const resultsDiv = document.createElement('div');
+                resultsDiv.className = 'card mt-4';
+                resultsDiv.innerHTML = `
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Extracted Policies</h5>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" id="use-extracted-text">
+                            <i class="fas fa-clipboard me-1"></i>Use in Evidence Fields
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <pre class="mb-0" style="white-space: pre-wrap; background: #f8f9fa; padding: 1rem; border-radius: 0.5rem;">${data.text}</pre>
+                    </div>
+                `;
+
+                // Append results after existing content
+                const ocrResults = document.getElementById('ocr-results');
+                ocrResults.innerHTML = ''; // Clear previous results
+                ocrResults.appendChild(resultsDiv);
+                
+                // Add event listener for "Use in Evidence Fields" button
+                document.getElementById('use-extracted-text').addEventListener('click', () => {
+                    const extractedText = data.text;
+                    const evidenceTextareas = document.querySelectorAll('.evidence-textarea');
+                    const shouldApply = confirm('This will apply the extracted text to all empty evidence fields. Continue?');
+                    
+                    if (shouldApply) {
+                        evidenceTextareas.forEach(textarea => {
+                            // Only fill empty fields
+                            if (!textarea.value.trim()) {
+                                textarea.value = 'Extracted from uploaded assessment: ' + extractedText.substring(0, 200) + '...';
+                            }
+                        });
+                        alert('Text has been applied to empty evidence fields.');
+                    }
+                });
+
+            } catch (error) {
+                console.error('OCR Error:', error);
+                alert('Failed to extract text: ' + error.message);
+            } finally {
+                // Reset button state
+                const extractBtn = document.getElementById('extractPoliciesBtn');
+                extractBtn.innerHTML = '<i class="fas fa-file-import me-1"></i>Extract Policies';
+                extractBtn.disabled = false;
+            }
+        });
     });
 </script>
 {% endblock %}
