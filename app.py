@@ -45,6 +45,7 @@ def create_app():
         reports_bp,
         api_assessment_bp,
         report_gen_bp,
+        extract_policies_bp,
     )
     from models import User
 
@@ -55,6 +56,7 @@ def create_app():
     app.register_blueprint(reports_bp, url_prefix="/reports")
     app.register_blueprint(api_assessment_bp, url_prefix="/api/assessment")
     app.register_blueprint(report_gen_bp, url_prefix="/generate-milestone-report")
+    app.register_blueprint(extract_policies_bp, url_prefix="/extract-text")
 
     # Configure login manager
     @login_manager.user_loader
