@@ -41,6 +41,9 @@ controls_bp = Blueprint("controls", __name__)
 # reports blueprint
 reports_bp = Blueprint("reports", __name__)
 
+# technical report
+report_gen_bp = Blueprint("generate-milestone-report", __name__)
+
 
 @auth_bp.route("/login", methods=["GET", "POST"])
 def login():
@@ -363,3 +366,127 @@ def get_assessment_data(assessment_id):
     }
 
     return jsonify(data)
+
+
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import letter
+from io import BytesIO
+from datetime import datetime
+from flask import send_file  # Add this import
+
+
+# report generation route
+@report_gen_bp.route("/generate-milestone-report")
+@login_required
+def generate_milestone_report():
+    # Create PDF buffer
+    buffer = BytesIO()
+
+    # Create PDF canvas
+    pdf = canvas.Canvas(buffer, pagesize=letter)
+    width, height = letter
+
+    # Custom styles
+    title_style = {"fontName": "Helvetica-Bold", "fontSize": 18}
+    heading_style = {"fontName": "Helvetica-Bold", "fontSize": 12}
+    body_style = {"fontName": "Helvetica", "fontSize": 10}
+
+    # --- Content Generation ---
+    y_position = height - 50  # Start from top
+
+    # 1. Header
+    pdf.setFont(title_style["fontName"], title_style["fontSize"])
+    pdf.drawString(50, y_position, "Compliance Hub - Milestone 1 Technical Report")
+    y_position -= 30
+
+    # 2. Project Overview
+    pdf.setFont(heading_style["fontName"], heading_style["fontSize"])
+    pdf.drawString(50, y_position, "Technical Achievements:")
+    y_position -= 15
+
+    pdf.setFont(body_style["fontName"], body_style["fontSize"])
+    achievements = [
+        "✓ Authentication system with role-based access",
+        "✓ Unified dashboard interface implementation",
+        "✓ ISO 27001 <> PCI DSS control mapping architecture",
+        "✓ Assessment tracking database model",
+        "✓ Risk prioritization algorithm foundation",
+    ]
+
+    for achievement in achievements:
+        pdf.drawString(60, y_position, achievement)
+        y_position -= 15
+
+    # 3. System Architecture Diagram
+    y_position -= 20
+    pdf.setFont(heading_style["fontName"], heading_style["fontSize"])
+    pdf.drawString(50, y_position, "Architecture Overview:")
+    y_position -= 80
+
+    # Placeholder for architecture diagram (replace with actual image path)
+    pdf.drawImage(
+        "static/images/architecture_diagram.png", 50, y_position, width=500, height=300
+    )
+    y_position -= 320
+
+    # 4. Database Schema
+    pdf.setFont(heading_style["fontName"], heading_style["fontSize"])
+    pdf.drawString(50, y_position, "Core Database Tables:")
+    y_position -= 15
+
+    schema_data = [
+        ("Users", "User accounts & authentication"),
+        ("Controls", "ISO/PCI control definitions"),
+        ("Assessments", "Compliance evaluation instances"),
+        ("Mappings", "Cross-standard control relationships"),
+    ]
+
+    pdf.setFont(body_style["fontName"], body_style["fontSize"])
+    for table, desc in schema_data:
+        pdf.drawString(60, y_position, f"■ {table}: {desc}")
+        y_position -= 12
+
+    # 5. API Endpoints
+    y_position -= 20
+    pdf.setFont(heading_style["fontName"], heading_style["fontSize"])
+    pdf.drawString(50, y_position, "Key Implemented Endpoints:")
+    y_position -= 15
+
+    endpoints = [
+        ("POST /auth/login", "User authentication"),
+        ("GET /api/controls", "List mapped controls"),
+        ("POST /assessment/new", "Create new assessment"),
+        ("GET /api/risk-analysis", "Risk prioritization data"),
+    ]
+
+    for endpoint, desc in endpoints:
+        pdf.drawString(60, y_position, f"▸ {endpoint} - {desc}")
+        y_position -= 12
+
+    # 6. Next Steps
+    y_position -= 20
+    pdf.setFont(heading_style["fontName"], heading_style["fontSize"])
+    pdf.drawString(50, y_position, "Next Phase Objectives:")
+    y_position -= 15
+
+    next_steps = [
+        "Implement AI risk scoring engine",
+        "Add real-time compliance monitoring",
+        "Develop automated report generation",
+        "Integrate PCI DSS v4.0 updates",
+    ]
+
+    for step in next_steps:
+        pdf.drawString(60, y_position, f"• {step}")
+        y_position -= 12
+
+    # Finalize PDF
+    pdf.save()
+    buffer.seek(0)
+
+    return send_file(
+        buffer,
+        as_attachment=True,
+        download_name=f"compliance_hub_milestone1_{datetime.now().date()}.pdf",
+        mimetype="application/pdf",
+    )
