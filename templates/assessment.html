@@ -262,7 +262,7 @@
     <div id="ocr-results" class="mt-5"></div>
     
     <div class="d-flex justify-content-between mt-4 mb-5">
-        <button type="button" class="btn btn-outline-secondary">Cancel</button>
+        <button type="button" class="btn btn-outline-secondary" onclick="clearFileAndResults()">Cancel</button>
         <button type="submit" class="btn btn-primary btn-lg" form="assessment-form">
             <i class="fas fa-save me-1"></i>Save Assessment
         </button>
@@ -295,12 +295,26 @@
         }
     }
 
-    function clearFile() {
+    function clearFileAndResults() {
+        // Clear file input and preview
         document.getElementById('assessment_pdf').value = '';
         document.getElementById('filePreview').innerHTML = '';
         document.getElementById('extractPoliciesBtn').classList.add('d-none');
-        // Also clear OCR results when file is cleared
+        
+        // Clear OCR results section
         document.getElementById('ocr-results').innerHTML = '';
+        
+        // Reset form fields
+        document.getElementById('assessment-form').reset();
+        
+        // Clear any selected status indicators
+        document.querySelectorAll('.status-indicator').forEach(indicator => {
+            indicator.classList.remove('compliant', 'partially_compliant', 'non_compliant');
+        });
+        
+        // Reset progress indicators
+        document.getElementById('progress-bar').style.width = '0%';
+        document.getElementById('completed-controls').textContent = '0';
     }
 
     document.addEventListener('DOMContentLoaded', function() {
