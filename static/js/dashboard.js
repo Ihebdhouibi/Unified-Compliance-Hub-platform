@@ -5,6 +5,13 @@
 
 // Load dashboard data from API
 function loadDashboardData(assessmentId) {
+     // If no assessment ID is provided, show a message
+    if (!assessmentId) {
+        console.log("No assessment ID provided");
+        showEmptyState("No assessments found. Please create one first.");
+        return;
+    }
+    
     fetch(`/api/assessment/${assessmentId}`)
         .then(response => response.json())
         .then(data => {
