@@ -156,6 +156,11 @@ def logout():
 @dashboard_bp.route("/dashboard")
 @login_required
 def dashboard():
+    user_org = Organization.query.filter_by(owner_id=current_user.id).first()
+    if not user_org:
+        flash("You need to create an organization first", "danger")
+        return render_template("dashboard.html", needs_organization=True)
+
     """Dashboard route displaying compliance overview"""
     # Get most recent assessment if available
     assessment = Assessment.query.order_by(Assessment.date_created.desc()).first()
@@ -289,85 +294,110 @@ def reports():
     return render_template("reports.html", assessments=assessments)
 
 
-@api_assessment_bp.route("/api/assessment/<int:assessment_id>")
+@api_assessment_bp.route("/<int:assessment_id>")
+@login_required
 def get_assessment_data(assessment_id):
     """API endpoint to get assessment data for charts"""
-    results = AssessmentResult.query.filter_by(assessment_id=assessment_id).all()
-    print(results)
-    # Count by status
-    status_counts = {"compliant": 0, "partially_compliant": 0, "non_compliant": 0}
 
-    # Count by risk level
-    risk_counts = {"high": 0, "medium": 0, "low": 0}
+    try:
+        print(f"API called for assessment ID: {assessment_id}")
+        # First check if assessment exists and belongs to user's organization
+        user_org = Organization.query.filter_by(owner_id=current_user.id).first()
+        if not user_org:
+            return jsonify({"error": "No organization found"}), 400
 
-    # Get framework compliance percentages
-    iso_compliance = {"total": 0, "compliant": 0}
-    pci_compliance = {"total": 0, "compliant": 0}
+        assessment = Assessment.query.get(assessment_id)
+        if not assessment:
+            return jsonify({"error": "Assessment not found"}), 404
 
-    for result in results:
-        # Update status counts
-        status_counts[result.status] = status_counts.get(result.status, 0) + 1
+        if assessment.organization_id != user_org.id:
+            return jsonify({"error": "Unauthorized access to assessment"}), 403
 
-        # Update risk counts
-        risk_counts[result.risk_level] = risk_counts.get(result.risk_level, 0) + 1
+        results = AssessmentResult.query.filter_by(assessment_id=assessment_id).all()
+        print(results)
+        # Count by status
+        status_counts = {"compliant": 0, "partially_compliant": 0, "non_compliant": 0}
 
-        # Update framework-specific counts
-        control = result.control
-        framework = control.framework
+        # Count by risk level
+        risk_counts = {"high": 0, "medium": 0, "low": 0}
 
-        if framework.name == "ISO 27001":
-            iso_compliance["total"] += 1
-            if result.status == "compliant":
-                iso_compliance["compliant"] += 1
-        elif framework.name == "PCI DSS":
-            pci_compliance["total"] += 1
-            if result.status == "compliant":
-                pci_compliance["compliant"] += 1
+        # Get framework compliance percentages
+        iso_compliance = {"total": 0, "compliant": 0}
+        pci_compliance = {"total": 0, "compliant": 0}
 
-    # Calculate percentages
-    iso_percentage = (
-        (iso_compliance["compliant"] / iso_compliance["total"] * 100)
-        if iso_compliance["total"] > 0
-        else 0
-    )
-    pci_percentage = (
-        (pci_compliance["compliant"] / pci_compliance["total"] * 100)
-        if pci_compliance["total"] > 0
-        else 0
-    )
+        for result in results:
+            # Update status counts
+            status_counts[result.status] = status_counts.get(result.status, 0) + 1
 
-    # Prepare detailed results
-    detailed_results = []
-    for result in results:
-        control = result.control
-        detailed_results.append(
-            {
-                "id": control.id,
-                "control_id": control.control_id,
-                "title": control.title,
-                "framework": control.framework.name,
-                "status": result.status,
-                "risk_level": result.risk_level,
-                "action_required": result.action_required,
-            }
+            # Update risk counts
+            risk_counts[result.risk_level] = risk_counts.get(result.risk_level, 0) + 1
+
+            # Update framework-specific counts
+            control = result.control
+            framework = control.framework
+
+            if framework.name == "ISO 27001":
+                iso_compliance["total"] += 1
+                if result.status == "compliant":
+                    iso_compliance["compliant"] += 1
+            elif framework.name == "PCI DSS":
+                pci_compliance["total"] += 1
+                if result.status == "compliant":
+                    pci_compliance["compliant"] += 1
+
+        # Calculate percentages
+        iso_percentage = (
+            (iso_compliance["compliant"] / iso_compliance["total"] * 100)
+            if iso_compliance["total"] > 0
+            else 0
+        )
+        pci_percentage = (
+            (pci_compliance["compliant"] / pci_compliance["total"] * 100)
+            if pci_compliance["total"] > 0
+            else 0
         )
 
-    data = {
-        "status_counts": status_counts,
-        "risk_counts": risk_counts,
-        "framework_compliance": {"iso27001": iso_percentage, "pcidss": pci_percentage},
-        "overall_compliance": (
-            (
-                (iso_compliance["compliant"] + pci_compliance["compliant"])
-                / (iso_compliance["total"] + pci_compliance["total"])
-                * 100
+        # Prepare detailed results
+        detailed_results = []
+        for result in results:
+            control = result.control
+            detailed_results.append(
+                {
+                    "id": control.id,
+                    "control_id": control.control_id,
+                    "title": control.title,
+                    "framework": control.framework.name,
+                    "status": result.status,
+                    "risk_level": result.risk_level,
+                    "action_required": result.action_required,
+                }
             )
-            if (iso_compliance["total"] + pci_compliance["total"]) > 0
-            else 0
-        ),
-        "detailed_results": detailed_results,
-    }
 
+        data = {
+            "status_counts": status_counts,
+            "risk_counts": risk_counts,
+            "framework_compliance": {
+                "iso27001": iso_percentage,
+                "pcidss": pci_percentage,
+            },
+            "overall_compliance": (
+                (
+                    (iso_compliance["compliant"] + pci_compliance["compliant"])
+                    / (iso_compliance["total"] + pci_compliance["total"])
+                    * 100
+                )
+                if (iso_compliance["total"] + pci_compliance["total"]) > 0
+                else 0
+            ),
+            "detailed_results": detailed_results,
+        }
+    except Exception as e:
+        # Log the exception for debugging
+        logging.error(f"Error in get_assessment_data: {str(e)}")
+        return (
+            jsonify({"error": "An error occurred processing the assessment data"}),
+            500,
+        )
     return jsonify(data)
 
 
