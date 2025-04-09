@@ -147,132 +147,169 @@
                     </div>
                 </div>
             </div>
-        </div>
+        </form>
     </div>
+</div>
 
-    <div class="control-filter-bar">
-        <div class="row align-items-center">
-            <div class="col-md-4 mb-3 mb-md-0">
-                <div class="input-group">
-                    <span class="input-group-text"><i class="fas fa-search"></i></span>
-                    <input type="text" class="form-control" placeholder="Search controls..." id="filter-search">
-                </div>
+<div class="control-filter-bar">
+    <div class="row align-items-center">
+        <div class="col-md-4 mb-3 mb-md-0">
+            <div class="input-group">
+                <span class="input-group-text"><i class="fas fa-search"></i></span>
+                <input type="text" class="form-control" placeholder="Search controls..." id="filter-search">
             </div>
-            
-            <div class="col-md-4 mb-3 mb-md-0">
-                <div class="btn-group w-100" role="group">
-                    <input type="radio" class="btn-check" name="framework-filter" id="filter-all" autocomplete="off" checked>
-                    <label class="btn btn-outline-secondary" for="filter-all">All</label>
-                    
-                    <input type="radio" class="btn-check" name="framework-filter" id="filter-iso" autocomplete="off">
-                    <label class="btn btn-outline-info" for="filter-iso">ISO 27001</label>
-                    
-                    <input type="radio" class="btn-check" name="framework-filter" id="filter-pci" autocomplete="off">
-                    <label class="btn btn-outline-warning" for="filter-pci">PCI DSS</label>
-                </div>
+        </div>
+        
+        <div class="col-md-4 mb-3 mb-md-0">
+            <div class="btn-group w-100" role="group">
+                <input type="radio" class="btn-check" name="framework-filter" id="filter-all" autocomplete="off" checked>
+                <label class="btn btn-outline-secondary" for="filter-all">All</label>
+                
+                <input type="radio" class="btn-check" name="framework-filter" id="filter-iso" autocomplete="off">
+                <label class="btn btn-outline-info" for="filter-iso">ISO 27001</label>
+                
+                <input type="radio" class="btn-check" name="framework-filter" id="filter-pci" autocomplete="off">
+                <label class="btn btn-outline-warning" for="filter-pci">PCI DSS</label>
             </div>
-            
-            <div class="col-md-4">
-                <div class="d-flex gap-3">
-                    <div class="dropdown">
-                        <button class="btn btn-outline-secondary dropdown-toggle w-100" type="button" id="statusFilterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                            Status
-                        </button>
-                        <ul class="dropdown-menu" aria-labelledby="statusFilterDropdown">
-                            <li><a class="dropdown-item status-filter" data-status="all" href="#">All</a></li>
-                            <li><a class="dropdown-item status-filter" data-status="pending" href="#">Pending</a></li>
-                            <li><a class="dropdown-item status-filter" data-status="compliant" href="#">Compliant</a></li>
-                            <li><a class="dropdown-item status-filter" data-status="partially_compliant" href="#">Partially Compliant</a></li>
-                            <li><a class="dropdown-item status-filter" data-status="non_compliant" href="#">Non-Compliant</a></li>
-                        </ul>
-                    </div>
-                    
-                    <div class="dropdown">
-                        <button class="btn btn-outline-secondary dropdown-toggle w-100" type="button" id="batchUpdateDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                            Batch Update
-                        </button>
-                        <ul class="dropdown-menu" aria-labelledby="batchUpdateDropdown">
-                            <li><a class="dropdown-item batch-update" data-status="compliant" href="#">Set Visible as Compliant</a></li>
-                            <li><a class="dropdown-item batch-update" data-status="partially_compliant" href="#">Set Visible as Partially Compliant</a></li>
-                            <li><a class="dropdown-item batch-update" data-status="non_compliant" href="#">Set Visible as Non-Compliant</a></li>
-                        </ul>
-                    </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="d-flex gap-3">
+                <div class="dropdown">
+                    <button class="btn btn-outline-secondary dropdown-toggle w-100" type="button" id="statusFilterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        Status
+                    </button>
+                    <ul class="dropdown-menu" aria-labelledby="statusFilterDropdown">
+                        <li><a class="dropdown-item status-filter" data-status="all" href="#">All</a></li>
+                        <li><a class="dropdown-item status-filter" data-status="pending" href="#">Pending</a></li>
+                        <li><a class="dropdown-item status-filter" data-status="compliant" href="#">Compliant</a></li>
+                        <li><a class="dropdown-item status-filter" data-status="partially_compliant" href="#">Partially Compliant</a></li>
+                        <li><a class="dropdown-item status-filter" data-status="non_compliant" href="#">Non-Compliant</a></li>
+                    </ul>
+                </div>
+                
+                <div class="dropdown">
+                    <button class="btn btn-outline-secondary dropdown-toggle w-100" type="button" id="batchUpdateDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        Batch Update
+                    </button>
+                    <ul class="dropdown-menu" aria-labelledby="batchUpdateDropdown">
+                        <li><a class="dropdown-item batch-update" data-status="compliant" href="#">Set Visible as Compliant</a></li>
+                        <li><a class="dropdown-item batch-update" data-status="partially_compliant" href="#">Set Visible as Partially Compliant</a></li>
+                        <li><a class="dropdown-item batch-update" data-status="non_compliant" href="#">Set Visible as Non-Compliant</a></li>
+                    </ul>
                 </div>
             </div>
         </div>
     </div>
+</div>
 
-    <div id="controls-container">
-        {% for control in controls %}
-        <div class="control-item {{ 'iso' if 'ISO' in control.framework.name else 'pci' }}" 
-             data-framework="{{ 'iso' if 'ISO' in control.framework.name else 'pci' }}"
-             data-status="pending"
-             data-id="{{ control.id }}">
-            <div class="control-header">
-                <div>
-                    <span class="control-id">{{ control.control_id }}</span>
-                    <span class="framework-badge badge {{ 'bg-info' if 'ISO' in control.framework.name else 'bg-warning' }}">
-                        {{ control.framework.name }}
-                    </span>
-                </div>
-                <div class="control-status">
-                    <span class="status-indicator" id="status-indicator-{{ control.id }}"></span>
-                    <span class="status-text" id="status-text-{{ control.id }}">Pending</span>
-                </div>
+<div id="controls-container">
+    {% for control in controls %}
+    <div class="control-item {{ 'iso' if 'ISO' in control.framework.name else 'pci' }}" 
+         data-framework="{{ 'iso' if 'ISO' in control.framework.name else 'pci' }}"
+         data-status="pending"
+         data-id="{{ control.id }}"
+         data-control-id="{{ control.control_id }}">
+        <div class="control-header">
+            <div>
+                <span class="control-id">{{ control.control_id }}</span>
+                <span class="framework-badge badge {{ 'bg-info' if 'ISO' in control.framework.name else 'bg-warning' }}">
+                    {{ control.framework.name }}
+                </span>
             </div>
-            
-            <h5>{{ control.title }}</h5>
-            <p class="text-muted">{{ control.description }}</p>
-            
-            <div class="row mt-4">
-                <div class="col-md-4 mb-3">
-                    <label class="form-label">Compliance Status</label>
-                    <select class="form-select status-select" name="control_{{ control.id }}" data-control-id="{{ control.id }}">
-                        <option value="" selected>-- Select Status --</option>
-                        <option value="compliant">Compliant</option>
-                        <option value="partially_compliant">Partially Compliant</option>
-                        <option value="non_compliant">Non-Compliant</option>
-                    </select>
-                </div>
-                
-                <div class="col-md-4 mb-3">
-                    <label class="form-label">Risk Level</label>
-                    <select class="form-select risk-select" name="risk_{{ control.id }}" data-control-id="{{ control.id }}">
-                        <option value="low">Low</option>
-                        <option value="medium" selected>Medium</option>
-                        <option value="high">High</option>
-                    </select>
-                </div>
-                
-                <div class="col-md-4 mb-3">
-                    <label class="form-label">Evidence/Implementation</label>
-                    <textarea class="form-control evidence-textarea" name="evidence_{{ control.id }}" placeholder="Describe implementation or provide evidence..."></textarea>
-                </div>
-                
-                <div class="col-12 action-required-container d-none">
-                    <label class="form-label">Action Required</label>
-                    <textarea class="form-control action-textarea" name="action_{{ control.id }}" placeholder="Describe required actions to remediate..."></textarea>
-                </div>
+            <div class="control-status">
+                <span class="status-indicator" id="status-indicator-{{ control.id }}"></span>
+                <span class="status-text" id="status-text-{{ control.id }}">Pending</span>
             </div>
         </div>
-        {% endfor %}
+        
+        <h5>{{ control.title }}</h5>
+        <p class="text-muted control-measure">{{ control.description }}</p>
+        
+        <div class="row mt-4">
+            <div class="col-md-4 mb-3">
+                <label class="form-label">Compliance Status</label>
+                <select class="form-select status-select" name="control_{{ control.id }}" data-control-id="{{ control.id }}">
+                    <option value="" selected>-- Select Status --</option>
+                    <option value="compliant">Compliant</option>
+                    <option value="partially_compliant">Partially Compliant</option>
+                    <option value="non_compliant">Non-Compliant</option>
+                </select>
+            </div>
+            
+            <div class="col-md-4 mb-3">
+                <label class="form-label">Risk Level</label>
+                <select class="form-select risk-select" name="risk_{{ control.id }}" data-control-id="{{ control.id }}">
+                    <option value="low">Low</option>
+                    <option value="medium" selected>Medium</option>
+                    <option value="high">High</option>
+                </select>
+            </div>
+            
+            <div class="col-md-4 mb-3">
+                <label class="form-label">Evidence/Implementation</label>
+                <textarea class="form-control evidence-textarea" name="evidence_{{ control.id }}" placeholder="Describe implementation or provide evidence..."></textarea>
+            </div>
+            
+            <div class="col-12 action-required-container d-none">
+                <label class="form-label">Action Required</label>
+                <textarea class="form-control action-textarea" name="action_{{ control.id }}" placeholder="Describe required actions to remediate..."></textarea>
+            </div>
+        </div>
     </div>
-    
-    <!-- Add OCR results container -->
-    <div id="ocr-results" class="mt-5"></div>
-    
-    <div class="d-flex justify-content-between mt-4 mb-5">
-        <button type="button" class="btn btn-outline-secondary" onclick="clearFileAndResults()">Cancel</button>
-        <button type="submit" class="btn btn-primary btn-lg" form="assessment-form">
-            <i class="fas fa-save me-1"></i>Save Assessment
-        </button>
-    </div>
-</form>
+    {% endfor %}
+</div>
+
+<!-- Add OCR results container -->
+<div id="ocr-results" class="mt-5"></div>
+
+<div class="d-flex justify-content-between mt-4 mb-5">
+    <button type="button" class="btn btn-outline-secondary" onclick="clearFileAndResults()">Cancel</button>
+    <button type="submit" class="btn btn-primary btn-lg" form="assessment-form">
+        <i class="fas fa-save me-1"></i>Save Assessment
+    </button>
+</div>
 {% endblock %}
 
 {% block extra_js %}
 <script src="{{ url_for('static', filename='js/assessment.js') }}"></script>
 <script>
+    // Function to clean up extracted text by adding spaces where needed
+    function cleanExtractedText(text) {
+        text = text.replace(/([a-z])([A-Z])/g, '$1 $2');
+        text = text.replace(/(\d+)-([a-zA-Z])/g, '$1- $2');
+        text = text.replace(/([a-zA-Z])\/([a-zA-Z])/g, '$1 / $2');
+        text = text.replace(/([a-z])([A-Z][a-z])/g, '$1 $2');
+        return text;
+    }
+
+    // Function to parse extracted text into a map of control IDs to measures
+    function parseExtractedText(cleanedText) {
+        const lines = cleanedText.split('\n').map(line => line.trim()).filter(line => line);
+        const controlMeasures = {};
+        let currentControlId = null;
+        let currentMeasure = '';
+
+        lines.forEach(line => {
+            const controlMatch = line.match(/^"([A-Za-z0-9.]+)":/);
+            if (controlMatch) {
+                if (currentControlId && currentMeasure) {
+                    controlMeasures[currentControlId] = currentMeasure.trim();
+                }
+                currentControlId = controlMatch[1];
+                currentMeasure = '';
+            } else if (currentControlId) {
+                currentMeasure += ' ' + line;
+            }
+        });
+
+        if (currentControlId && currentMeasure) {
+            controlMeasures[currentControlId] = currentMeasure.trim();
+        }
+
+        return controlMeasures;
+    }
+
     function handleFileUpload(input) {
         const filePreview = document.getElementById('filePreview');
         const extractBtn = document.getElementById('extractPoliciesBtn');
@@ -296,38 +333,23 @@
     }
 
     function clearFileAndResults() {
-        // Clear file input and preview
         document.getElementById('assessment_pdf').value = '';
         document.getElementById('filePreview').innerHTML = '';
         document.getElementById('extractPoliciesBtn').classList.add('d-none');
-        
-        // Clear OCR results section
         document.getElementById('ocr-results').innerHTML = '';
-        
-        // Reset form fields
         document.getElementById('assessment-form').reset();
-        
-        // Clear any selected status indicators
         document.querySelectorAll('.status-indicator').forEach(indicator => {
             indicator.classList.remove('compliant', 'partially_compliant', 'non_compliant');
         });
-        
-        // Reset progress indicators
         document.getElementById('progress-bar').style.width = '0%';
         document.getElementById('completed-controls').textContent = '0';
     }
 
     document.addEventListener('DOMContentLoaded', function() {
-        // Initialize assessment form
         initAssessmentForm();
-        
-        // Setup event handlers for filtering and batch operations
         setupFilters();
-        
-        // Update initial metrics
         updateProgress();
-        
-        // Add event listener for Extract Policies button
+
         document.getElementById('extractPoliciesBtn').addEventListener('click', async () => {
             const fileInput = document.getElementById('assessment_pdf');
             const file = fileInput.files[0];
@@ -341,7 +363,6 @@
                 const formData = new FormData();
                 formData.append('pdf', file);
 
-                // Show loading state
                 const extractBtn = document.getElementById('extractPoliciesBtn');
                 extractBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
                 extractBtn.disabled = true;
@@ -357,7 +378,22 @@
                     throw new Error(data.error);
                 }
 
-                // Create results container
+                const cleanedText = cleanExtractedText(data.text);
+                const controlMeasures = parseExtractedText(cleanedText);
+
+                // Update each control's measure in the respective control box
+                const controlItems = document.querySelectorAll('.control-item');
+                controlItems.forEach(controlItem => {
+                    const controlId = controlItem.dataset.controlId;
+                    const measure = controlMeasures[controlId];
+                    if (measure) {
+                        const measureElement = controlItem.querySelector('.control-measure');
+                        if (measureElement) {
+                            measureElement.textContent = measure;
+                        }
+                    }
+                });
+
                 const resultsDiv = document.createElement('div');
                 resultsDiv.className = 'card mt-4';
                 resultsDiv.innerHTML = `
@@ -367,30 +403,27 @@
                             <i class="fas fa-clipboard me-1"></i>Use in Evidence Fields
                         </button>
                     </div>
-                    <div class="card-body">
-                        <pre class="mb-0" style="white-space: pre-wrap; background: #f8f9fa; padding: 1rem; border-radius: 0.5rem;">${data.text}</pre>
-                    </div>
+
                 `;
 
-                // Append results after existing content
                 const ocrResults = document.getElementById('ocr-results');
-                ocrResults.innerHTML = ''; // Clear previous results
+                ocrResults.innerHTML = '';
                 ocrResults.appendChild(resultsDiv);
                 
-                // Add event listener for "Use in Evidence Fields" button
                 document.getElementById('use-extracted-text').addEventListener('click', () => {
-                    const extractedText = data.text;
-                    const evidenceTextareas = document.querySelectorAll('.evidence-textarea');
-                    const shouldApply = confirm('This will apply the extracted text to all empty evidence fields. Continue?');
-                    
+                    const shouldApply = confirm('This will apply the extracted measures to the evidence fields of their respective controls. Continue?');
                     if (shouldApply) {
-                        evidenceTextareas.forEach(textarea => {
-                            // Only fill empty fields
-                            if (!textarea.value.trim()) {
-                                textarea.value = 'Extracted from uploaded assessment: ' + extractedText.substring(0, 200) + '...';
+                        controlItems.forEach(controlItem => {
+                            const controlId = controlItem.dataset.controlId;
+                            const measure = controlMeasures[controlId];
+                            if (measure) {
+                                const evidenceTextarea = controlItem.querySelector('.evidence-textarea');
+                                if (evidenceTextarea && !evidenceTextarea.value.trim()) {
+                                    evidenceTextarea.value = measure;
+                                }
                             }
                         });
-                        alert('Text has been applied to empty evidence fields.');
+                        alert('Extracted measures have been applied to the evidence fields.');
                     }
                 });
 
@@ -398,7 +431,6 @@
                 console.error('OCR Error:', error);
                 alert('Failed to extract text: ' + error.message);
             } finally {
-                // Reset button state
                 const extractBtn = document.getElementById('extractPoliciesBtn');
                 extractBtn.innerHTML = '<i class="fas fa-file-import me-1"></i>Extract Policies';
                 extractBtn.disabled = false;
