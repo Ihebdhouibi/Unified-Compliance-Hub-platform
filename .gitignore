@@ -4,3 +4,4 @@ assests/
 data/__pycache__/
 __pycache__/
 data/
+logs/
