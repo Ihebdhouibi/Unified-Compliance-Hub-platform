@@ -108,15 +108,6 @@
 {% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h1>Compliance Assessment</h1>
-    <div>
-        <button type="button" class="btn btn-success" id="save-assessment-btn">
-            <i class="fas fa-save me-1"></i>Save Assessment
-        </button>
-    </div>
-</div>
-
 <div class="card mb-4">
     <div class="card-body">
         <form id="assessment-form" method="POST" action="{{ url_for('assessment.assessment') }}" enctype="multipart/form-data">
@@ -147,7 +138,7 @@
                     </div>
                 </div>
             </div>
-        </form>
+        
     </div>
 </div>
 
@@ -223,7 +214,7 @@
             </div>
         </div>
         
-        <h5>{{ control.title }}</h5>
+        <h5 class="card-title">{{ control.title }}</h5>
         <p class="text-muted control-measure">{{ control.description }}</p>
         
         <div class="row mt-4">
@@ -265,10 +256,11 @@
 
 <div class="d-flex justify-content-between mt-4 mb-5">
     <button type="button" class="btn btn-outline-secondary" onclick="clearFileAndResults()">Cancel</button>
-    <button type="submit" class="btn btn-primary btn-lg" form="assessment-form">
+    <button type="submit" class="btn btn-primary btn-lg" form="assessment-form" id="save-assessment-btn">
         <i class="fas fa-save me-1"></i>Save Assessment
     </button>
 </div>
+</form>
 {% endblock %}
 
 {% block extra_js %}
@@ -276,10 +268,12 @@
 <script>
     // Function to clean up extracted text by adding spaces where needed
     function cleanExtractedText(text) {
+        console.log("text : ",text)
         text = text.replace(/([a-z])([A-Z])/g, '$1 $2');
         text = text.replace(/(\d+)-([a-zA-Z])/g, '$1- $2');
         text = text.replace(/([a-zA-Z])\/([a-zA-Z])/g, '$1 / $2');
         text = text.replace(/([a-z])([A-Z][a-z])/g, '$1 $2');
+        console.log("text after zebi: ",text)
         return text;
     }
 
@@ -332,6 +326,56 @@
         }
     }
 
+    document.getElementById("extractPoliciesBtn").addEventListener("click", async () => {
+    const controlItems = document.querySelectorAll(".control-item");
+
+    for (const item of controlItems) {
+      const cid   = item.dataset.controlId;
+      const title = item.querySelector(".card-title").innerText.trim();
+      const measure = item.querySelector(".control-measure").innerText.trim();
+
+      // Build the exact input format
+      const payload = {
+        text: `[CONTROL_ID] ${cid} [TITLE] ${title} [MEASURES] ${measure}`
+      };
+
+      try {
+        const res = await fetch("/predict/prediction", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        const { label } = await res.json();
+
+        // Update status select & indicator
+        const statusSelect    = item.querySelector(".status-select");
+        const indicator       = item.querySelector(".status-indicator");
+        const statusTextEl    = item.querySelector(".status-text");
+        const riskSelect      = item.querySelector(".risk-select");
+
+        // Set dropdown
+        if (statusSelect) {
+            if (label === "Non-Compliant") statusSelect.value = "non_compliant";
+            else if (label === "Fully Compliant") statusSelect.value = "compliant";
+            else                                statusSelect.value = "partially_compliant";
+        }
+        item.dataset.status = statusSelect.value;
+        // Update colored dot and text
+        indicator.className = `status-indicator ${label.toLowerCase().replace(/ /g, "_")}`;
+        console.log("affichage classe name indicator: ",indicator.className)
+        statusTextEl.textContent = label;
+
+        // Adjust risk automatically
+        if (riskSelect) {
+          if (label === "Non-Compliant")       riskSelect.value = "high";
+          else if (label === "Partially Compliant") riskSelect.value = "medium";
+          else                                   riskSelect.value = "low";
+        }
+      } catch (err) {
+        console.error("Prediction API error:", err);
+      }
+    }
+})
     function clearFileAndResults() {
         document.getElementById('assessment_pdf').value = '';
         document.getElementById('filePreview').innerHTML = '';
@@ -349,6 +393,32 @@
         initAssessmentForm();
         setupFilters();
         updateProgress();
+
+        document.querySelectorAll('.control-item').forEach(item => {
+  const statusSelect = item.querySelector('.status-select');
+  // set initial
+  item.dataset.status = statusSelect.value || 'pending';
+  // whenever user (or your auto‑predict) changes it, update dataset
+  statusSelect.addEventListener('change', e => {
+    item.dataset.status = e.target.value;
+  });
+});
+
+// 2) Wire up the Status filter dropdown
+document.querySelectorAll('.status-filter').forEach(link => {
+  link.addEventListener('click', e => {
+    e.preventDefault();
+    const wanted = link.dataset.status;  // e.g. "compliant", "non_compliant", "all"
+    document.querySelectorAll('.control-item').forEach(item => {
+      // show if “all” OR matches this item’s current data-status
+      if (wanted === 'all' || item.dataset.status === wanted) {
+        item.style.display = '';
+      } else {
+        item.style.display = 'none';
+      }
+    });
+  });
+});
 
         document.getElementById('extractPoliciesBtn').addEventListener('click', async () => {
             const fileInput = document.getElementById('assessment_pdf');
@@ -398,7 +468,7 @@
                 resultsDiv.className = 'card mt-4';
                 resultsDiv.innerHTML = `
                     <div class="card-header d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0">Extracted Policies</h5>
+                        <h5 class="card-title" class="mb-0">Extracted Policies</h5>
                         <button type="button" class="btn btn-sm btn-outline-secondary" id="use-extracted-text">
                             <i class="fas fa-clipboard me-1"></i>Use in Evidence Fields
                         </button>
