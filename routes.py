@@ -47,6 +47,9 @@ report_gen_bp = Blueprint("generate-milestone-report", __name__)
 # policies extraction
 extract_policies_bp = Blueprint("extract", __name__)
 
+# predict compliance
+prediction_bp = Blueprint("prediction", __name__)
+
 
 @auth_bp.route("/login", methods=["GET", "POST"])
 def login():
@@ -213,6 +216,7 @@ def assessment():
                     evidence=evidence,
                     action_required=action,
                 )
+
                 db.session.add(result)
 
         db.session.commit()
@@ -300,7 +304,7 @@ def get_assessment_data(assessment_id):
     """API endpoint to get assessment data for charts"""
 
     try:
-        print(f"API called for assessment ID: {assessment_id}")
+
         # First check if assessment exists and belongs to user's organization
         user_org = Organization.query.filter_by(owner_id=current_user.id).first()
         if not user_org:
@@ -314,7 +318,7 @@ def get_assessment_data(assessment_id):
             return jsonify({"error": "Unauthorized access to assessment"}), 403
 
         results = AssessmentResult.query.filter_by(assessment_id=assessment_id).all()
-        print(results)
+
         # Count by status
         status_counts = {"compliant": 0, "partially_compliant": 0, "non_compliant": 0}
 
@@ -556,3 +560,37 @@ def handle_ocr_extraction():
         return jsonify({"text": extracted_text})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+import torch
+import pickle
+import os
+from transformers import BertTokenizer, BertForSequenceClassification
+
+# Load model & tokenizer
+MODEL_PATH = "saved_model"
+tokenizer = BertTokenizer.from_pretrained(MODEL_PATH)
+model = BertForSequenceClassification.from_pretrained(MODEL_PATH)
+model.eval()
+
+# Manual mapping (adjust as needed)
+mapping = {0: "Fully Compliant", 1: "Non-Compliant", 2: "Partially Compliant"}
+
+
+@prediction_bp.route("/prediction", methods=["POST"])
+def predict_compliance():
+    data = request.get_json()
+    text = data.get("text", "")
+    if not text:
+        return jsonify({"error": "No text provided"}), 400
+
+    inputs = tokenizer(
+        text, return_tensors="pt", truncation=True, padding=True, max_length=256
+    )
+    with torch.no_grad():
+        logits = model(**inputs).logits
+        pred_idx = torch.argmax(logits, dim=1).item()
+
+    # Use manual mapping for label
+    label = mapping.get(pred_idx, "Unknown")
+    return jsonify({"label": label})
