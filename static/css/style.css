@@ -175,3 +175,19 @@ main {
         font-size: 0.875rem;
     }
 }
+
+.status-indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background-color: #dee2e6; /* Gray default */
+}
+.status-indicator.fully_compliant {
+    background-color: #0ef438; /* Green for compliant */
+}
+.status-indicator.non-compliant {
+    background-color: #e50609; /* Red for Non compliant */
+}
+.status-indicator.partially-compliant {
+    background-color: #d0f019; /* Yellow for partially-compliant */
+}
