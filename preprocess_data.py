@@ -8,7 +8,7 @@ import json
 
 # Define paths
 data_path = "updated_compliance_dataset.csv"
-output_dir = "data"
+output_dir = "./"
 os.makedirs(output_dir, exist_ok=True)
 
 # Load the dataset
@@ -42,7 +42,8 @@ df["text"] = (
 # Label encode the target variable (Compliance Status)
 label_encoder = LabelEncoder()
 df["label"] = label_encoder.fit_transform(df["Compliance Status"])
-
+# right after label_encoder.fit_transform(...)
+print("Label classes (in order):", label_encoder.classes_)
 # Save the mapping (label classes) for future inference
 model_dir = "model"
 os.makedirs(model_dir, exist_ok=True)
