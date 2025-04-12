@@ -64,8 +64,10 @@ def login():
         if user and user.check_password(password):
             login_user(user, remember=remember)
             user.last_login = datetime.utcnow()
+            session.permanent = True  # Enables timeout tracking
             db.session.commit()
             flash("Logged in successfully!", "success")
+
             return redirect(url_for("dashboard.dashboard"))
 
         flash("Invalid email or password", "danger")
@@ -152,6 +154,7 @@ def register():
 @login_required
 def logout():
     logout_user()
+    session.clear()
     flash("Logged out successfully", "success")
     return redirect(url_for("auth.login"))
 

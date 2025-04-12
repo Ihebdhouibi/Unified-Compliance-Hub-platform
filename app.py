@@ -1,10 +1,12 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, session, redirect, url_for, request
 from flask_sqlalchemy import SQLAlchemy
-from flask_login import LoginManager
+from flask_login import LoginManager, logout_user, current_user
 from flask_cors import CORS
+from datetime import timedelta
 from dotenv import load_dotenv
 import os
 import logging
+import time
 
 db = SQLAlchemy()
 login_manager = LoginManager()
@@ -19,12 +21,19 @@ def create_app():
         SQLALCHEMY_DATABASE_URI=os.getenv("DATABASE_URL"),
         SQLALCHEMY_TRACK_MODIFICATIONS=False,
     )
+    # close session in case of inactivity
+    app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(minutes=5)
+    app.config["SESSION_REFRESH_EACH_REQUEST"] = False
+
     print("SECRET_KEY:", os.getenv("SECRET_KEY"))
     print("DATABASE_URL:", os.getenv("DATABASE_URL"))
 
     # Initialize extensions
     db.init_app(app)
     login_manager.init_app(app)
+    login_manager.login_view = "auth.login"
+    login_manager.login_message = "Session expired. Please log in again."
+    login_manager.login_message_category = "warning"
 
     with app.app_context():
         from data.compliance_mapping import load_initial_data
@@ -68,5 +77,19 @@ def create_app():
     @app.route("/")
     def index():
         return render_template("index.html")
+
+    @app.before_request
+    def check_session_timeout():
+        if current_user.is_authenticated:
+            now = time.time()
+            last_activity = session.get("last_activity", now)
+            session["last_activity"] = now
+
+            timeout_seconds = app.config["PERMANENT_SESSION_LIFETIME"].total_seconds()
+
+            if now - last_activity > timeout_seconds:
+                logout_user()
+                session.clear()
+                return redirect(url_for("auth_bp.login"))
 
     return app
