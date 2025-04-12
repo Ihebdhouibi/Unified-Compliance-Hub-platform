@@ -102,7 +102,7 @@ except Exception:
     model = AutoModelForSequenceClassification.from_pretrained(MODEL_NAME, num_labels=3)
 
 model.to(device)
-optimizer = AdamW(model.parameters(), lr=2e-5)
+optimizer = AdamW(model.parameters(), lr=0.0001)
 
 # Training loop with early stopping
 log("🚀 Starting training...")
@@ -120,7 +120,7 @@ for epoch in range(EPOCHS):
         optimizer.zero_grad()
         outputs = model(input_ids, attention_mask=attention_mask)
         logits = outputs.logits
-        loss_fn = torch.nn.CrossEntropyLoss(weight=class_weights_tensor)
+        loss_fn = torch.nn.CrossEntropyLoss()
         loss = loss_fn(logits, labels)
         loss.backward()
         optimizer.step()
