@@ -268,12 +268,12 @@
 <script>
     // Function to clean up extracted text by adding spaces where needed
     function cleanExtractedText(text) {
-        console.log("text : ",text)
+        
         text = text.replace(/([a-z])([A-Z])/g, '$1 $2');
         text = text.replace(/(\d+)-([a-zA-Z])/g, '$1- $2');
         text = text.replace(/([a-zA-Z])\/([a-zA-Z])/g, '$1 / $2');
         text = text.replace(/([a-z])([A-Z][a-z])/g, '$1 $2');
-        console.log("text after zebi: ",text)
+        
         return text;
     }
 
@@ -362,7 +362,7 @@
         item.dataset.status = statusSelect.value;
         // Update colored dot and text
         indicator.className = `status-indicator ${label.toLowerCase().replace(/ /g, "_")}`;
-        console.log("affichage classe name indicator: ",indicator.className)
+        // console.log("affichage classe name indicator: ",indicator.className)
         statusTextEl.textContent = label;
 
         // Adjust risk automatically
