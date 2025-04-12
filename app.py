@@ -90,6 +90,6 @@ def create_app():
             if now - last_activity > timeout_seconds:
                 logout_user()
                 session.clear()
-                return redirect(url_for("auth_bp.login"))
+                return redirect(url_for("auth.login"))
 
     return app
