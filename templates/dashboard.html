@@ -194,14 +194,14 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const container = document.getElementById('dashboard-container');
-    console.log('Container:', container);
-    console.log('Raw assessment ID:', container.dataset.assessmentId);
+    //console.log('Container:', container);
+    //console.log('Raw assessment ID:', container.dataset.assessmentId);
 
     const INITIAL_ASSESSMENT_ID = container.dataset.assessmentId 
         ? parseInt(container.dataset.assessmentId) 
         : null;
 
-    console.log('Parsed Assessment ID:', INITIAL_ASSESSMENT_ID);
+    //console.log('Parsed Assessment ID:', INITIAL_ASSESSMENT_ID);
 
     if (INITIAL_ASSESSMENT_ID) {
         console.log('Attempting to load dashboard data');
