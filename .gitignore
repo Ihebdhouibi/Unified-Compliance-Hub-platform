@@ -10,5 +10,4 @@ compliance_dataset_v4.csv
 generate_diagrams.py
 dataflow_diagram.py
 reports/
-saved_model/
 model/
